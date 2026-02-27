@@ -1,0 +1,1 @@
+{"coordinateSystem":{"origin":"top-left","axis":{"x":"right-positive","y":"down-positive"},"board":{"width":10,"height":18}},"mode":"running","score":0,"activePiece":{"type":"O","anchor":{"x":1,"y":9},"cells":[{"x":1,"y":9},{"x":2,"y":9},{"x":1,"y":10},{"x":2,"y":10}]},"settledBlocks":[]}

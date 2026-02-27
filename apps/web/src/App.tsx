@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameInstance, GameModule } from "@arcade/game-sdk";
 import { snakeGame } from "@arcade/games-snake";
+import { tetrisGame } from "@arcade/games-tetris";
 
-type LaunchableGameId = "snake";
+type LaunchableGameId = "snake" | "tetris";
 
 type GameCard = {
   id: string;
@@ -26,10 +27,11 @@ const games: GameCard[] = [
     module: snakeGame
   },
   {
-    id: "tetris",
-    name: "Tetris",
-    status: "Planned",
-    description: "Block stacking with line clears and increasing speed."
+    id: tetrisGame.metadata.id,
+    name: tetrisGame.metadata.name,
+    status: "In Development",
+    description: "Deterministic O-piece scaffold with line clear mechanics.",
+    module: tetrisGame
   },
   {
     id: "space-invaders",
@@ -40,7 +42,7 @@ const games: GameCard[] = [
 ];
 
 function toLaunchableGameId(gameId: string): LaunchableGameId | null {
-  if (gameId === "snake") {
+  if (gameId === "snake" || gameId === "tetris") {
     return gameId;
   }
 
@@ -126,7 +128,13 @@ export default function App() {
             <div>
               <h2>{activeGame.name}</h2>
               <p>Score: {score}</p>
-              {lastGameOver ? <p>{lastGameOver}</p> : <p>Use arrow keys to steer.</p>}
+              {lastGameOver ? (
+                <p>{lastGameOver}</p>
+              ) : activeGame.id === "tetris" ? (
+                <p>Use arrows/WASD to move and drop.</p>
+              ) : (
+                <p>Use arrow keys to steer.</p>
+              )}
             </div>
             <div className="actions">
               <button onClick={restartGame} type="button">
@@ -149,6 +157,7 @@ export default function App() {
                 <strong>Status:</strong> {game.status}
               </p>
               <button
+                aria-label={`Play ${game.name}`}
                 disabled={game.status !== "In Development"}
                 onClick={() => handleLaunch(game.id)}
                 type="button"

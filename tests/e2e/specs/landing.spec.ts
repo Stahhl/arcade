@@ -10,7 +10,7 @@ test("snake can launch and advance deterministically", async ({ page }) => {
 
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Arcade" })).toBeVisible();
-  await page.getByRole("button", { name: "Play" }).click();
+  await page.getByRole("button", { name: "Play Snake" }).click();
 
   await expect(page.getByRole("heading", { name: "Snake" })).toBeVisible();
   await expect(page.getByText("Mode: running | Score: 0")).toBeVisible();

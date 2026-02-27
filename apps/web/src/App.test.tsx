@@ -19,7 +19,7 @@ describe("App", () => {
 
   it("launches snake and advances deterministic state", () => {
     render(<App />);
-    fireEvent.click(screen.getByRole("button", { name: "Play" }));
+    fireEvent.click(screen.getByRole("button", { name: "Play Snake" }));
 
     expect(screen.getByRole("heading", { name: "Snake" })).toBeInTheDocument();
     expect(screen.getByText("Score: 0")).toBeInTheDocument();
@@ -35,5 +35,34 @@ describe("App", () => {
 
     expect(screen.getByText("Score: 1")).toBeInTheDocument();
     expect(hooks.render_game_to_text).toBeTypeOf("function");
+  });
+
+  it("launches tetris and advances deterministic state", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Tetris" }));
+
+    expect(screen.getByRole("heading", { name: "Tetris" })).toBeInTheDocument();
+
+    const hooks = window as Window & {
+      advanceTime?: (ms: number) => void;
+      render_game_to_text?: () => string;
+    };
+
+    let state = JSON.parse(hooks.render_game_to_text?.() ?? "{}") as {
+      mode?: string;
+      activePiece?: { anchor: { y: number } };
+    };
+    const initialY = state.activePiece?.anchor.y ?? 0;
+
+    act(() => {
+      hooks.advanceTime?.(240);
+    });
+
+    state = JSON.parse(hooks.render_game_to_text?.() ?? "{}") as {
+      mode?: string;
+      activePiece?: { anchor: { y: number } };
+    };
+    expect(state.mode).toBe("running");
+    expect((state.activePiece?.anchor.y ?? 0) > initialY).toBe(true);
   });
 });

@@ -48,3 +48,7 @@ Original prompt: My computer seems to have unexpetably restarted while you where
   - `pnpm typecheck` PASS
   - `pnpm test` PASS
   - `pnpm test:e2e` PASS
+- Implemented `@arcade/games-tetris` deterministic vertical slice with Phaser renderer + jsdom fallback, preserving SDK hooks/events.
+- Integrated tetris into launcher as launchable (`Play Tetris`) and updated selectors to explicit per-game labels.
+- Added tetris unit coverage (`packages/games-tetris/src/index.test.ts`) and updated app/e2e tests for multi-launchable buttons.
+- Wrapper validation for tetris completed with artifacts in `output/web-game-wrapper-tetris`; screenshots and text-state confirmed expected movement and no console-error artifact files.
