@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { GameInstance, GameModule } from "@arcade/game-sdk";
 import { snakeGame } from "@arcade/games-snake";
 import { spaceInvadersGame } from "@arcade/games-space-invaders";
@@ -17,11 +17,16 @@ type GameCard = {
 type StatusFilter = "all" | "in-development" | "planned";
 type SortMode = "featured" | "name-asc" | "name-desc";
 type AchievementId = "first-launch" | "first-point" | "score-10";
+type SharedSettings = {
+  autoPauseOnWindowBlur: boolean;
+  showTextStatePanel: boolean;
+};
 
 type LocalProfile = {
   playerName: string;
   highScores: Record<LaunchableGameId, number>;
   unlockedAchievementIds: AchievementId[];
+  settings: SharedSettings;
 };
 
 type GameWindowHooks = Window & {
@@ -30,6 +35,10 @@ type GameWindowHooks = Window & {
 };
 
 const PROFILE_STORAGE_KEY = "arcade.local-profile.v1";
+const DEFAULT_SHARED_SETTINGS: SharedSettings = {
+  autoPauseOnWindowBlur: true,
+  showTextStatePanel: false
+};
 const DEFAULT_PROFILE: LocalProfile = {
   playerName: "Player 1",
   highScores: {
@@ -37,7 +46,8 @@ const DEFAULT_PROFILE: LocalProfile = {
     tetris: 0,
     "space-invaders": 0
   },
-  unlockedAchievementIds: []
+  unlockedAchievementIds: [],
+  settings: DEFAULT_SHARED_SETTINGS
 };
 
 const achievementDefinitions: Array<{
@@ -132,11 +142,22 @@ function loadProfile(): LocalProfile {
             achievementId === "score-10"
         )
       : [];
+    const settings: SharedSettings = {
+      autoPauseOnWindowBlur:
+        typeof parsedValue.settings?.autoPauseOnWindowBlur === "boolean"
+          ? parsedValue.settings.autoPauseOnWindowBlur
+          : DEFAULT_SHARED_SETTINGS.autoPauseOnWindowBlur,
+      showTextStatePanel:
+        typeof parsedValue.settings?.showTextStatePanel === "boolean"
+          ? parsedValue.settings.showTextStatePanel
+          : DEFAULT_SHARED_SETTINGS.showTextStatePanel
+    };
 
     return {
       playerName,
       highScores,
-      unlockedAchievementIds
+      unlockedAchievementIds,
+      settings
     };
   } catch {
     return DEFAULT_PROFILE;
@@ -147,6 +168,8 @@ export default function App() {
   const [activeGameId, setActiveGameId] = useState<LaunchableGameId | null>(null);
   const [score, setScore] = useState(0);
   const [lastGameOver, setLastGameOver] = useState<string | null>(null);
+  const [isPauseOverlayOpen, setIsPauseOverlayOpen] = useState(false);
+  const [textStateSnapshot, setTextStateSnapshot] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [sortMode, setSortMode] = useState<SortMode>("featured");
@@ -158,6 +181,10 @@ export default function App() {
   const activeGame = useMemo(
     () => games.find((game) => game.id === activeGameId),
     [activeGameId]
+  );
+  const activeLaunchableGameId = useMemo(
+    () => (activeGame ? toLaunchableGameId(activeGame.id) : null),
+    [activeGame]
   );
   const unlockedAchievements = useMemo(
     () =>
@@ -237,6 +264,48 @@ export default function App() {
     }
   };
 
+  const refreshTextStateSnapshot = useCallback(() => {
+    const snapshot = gameInstanceRef.current?.render_game_to_text() ?? "";
+    setTextStateSnapshot(snapshot);
+  }, []);
+
+  const openPauseOverlay = () => {
+    setIsPauseOverlayOpen(true);
+    gameInstanceRef.current?.pause();
+    refreshTextStateSnapshot();
+  };
+
+  const closePauseOverlay = () => {
+    setIsPauseOverlayOpen(false);
+    if (!lastGameOver) {
+      gameInstanceRef.current?.resume();
+    }
+  };
+
+  const stepPausedGame = () => {
+    const instance = gameInstanceRef.current;
+    if (!instance || lastGameOver) {
+      return;
+    }
+    instance.resume();
+    instance.advanceTime(250);
+    instance.pause();
+    refreshTextStateSnapshot();
+  };
+
+  const updateSetting = <K extends keyof SharedSettings>(
+    settingKey: K,
+    settingValue: SharedSettings[K]
+  ) => {
+    setProfile((currentProfile) => ({
+      ...currentProfile,
+      settings: {
+        ...currentProfile.settings,
+        [settingKey]: settingValue
+      }
+    }));
+  };
+
   useEffect(() => {
     try {
       window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
@@ -244,6 +313,67 @@ export default function App() {
       // Ignore local persistence errors (private mode/quota), keep in-memory profile.
     }
   }, [profile]);
+
+  useEffect(() => {
+    if (!activeGame || !profile.settings.showTextStatePanel) {
+      return undefined;
+    }
+
+    refreshTextStateSnapshot();
+    const intervalId = window.setInterval(() => {
+      refreshTextStateSnapshot();
+    }, 200);
+    return () => window.clearInterval(intervalId);
+  }, [activeGame, profile.settings.showTextStatePanel, refreshTextStateSnapshot]);
+
+  useEffect(() => {
+    if (!activeGame) {
+      return undefined;
+    }
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      event.preventDefault();
+      setIsPauseOverlayOpen((isOpen) => {
+        if (isOpen) {
+          if (!lastGameOver) {
+            gameInstanceRef.current?.resume();
+          }
+          return false;
+        }
+
+        gameInstanceRef.current?.pause();
+        refreshTextStateSnapshot();
+        return true;
+      });
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [activeGame, lastGameOver, refreshTextStateSnapshot]);
+
+  useEffect(() => {
+    if (!activeGame || !profile.settings.autoPauseOnWindowBlur) {
+      return undefined;
+    }
+
+    const onBlur = () => {
+      setIsPauseOverlayOpen((isOpen) => {
+        if (isOpen) {
+          return isOpen;
+        }
+        gameInstanceRef.current?.pause();
+        refreshTextStateSnapshot();
+        return true;
+      });
+    };
+
+    window.addEventListener("blur", onBlur);
+    return () => window.removeEventListener("blur", onBlur);
+  }, [activeGame, profile.settings.autoPauseOnWindowBlur, refreshTextStateSnapshot]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -264,6 +394,8 @@ export default function App() {
 
     setScore(0);
     setLastGameOver(null);
+    setIsPauseOverlayOpen(false);
+    setTextStateSnapshot("");
 
     const gameInstance = selectedModule.createGame(host, {
       on: {
@@ -281,16 +413,26 @@ export default function App() {
     });
 
     gameInstanceRef.current = gameInstance;
-    hooksWindow.advanceTime = (ms) => gameInstance.advanceTime(ms);
-    hooksWindow.render_game_to_text = () => gameInstance.render_game_to_text();
+    hooksWindow.advanceTime = (ms) => {
+      gameInstance.advanceTime(ms);
+      refreshTextStateSnapshot();
+    };
+    hooksWindow.render_game_to_text = () => {
+      const rendered = gameInstance.render_game_to_text();
+      setTextStateSnapshot(rendered);
+      return rendered;
+    };
+    refreshTextStateSnapshot();
 
     return () => {
       gameInstanceRef.current?.destroy();
       gameInstanceRef.current = null;
       hooksWindow.advanceTime = undefined;
       hooksWindow.render_game_to_text = undefined;
+      setIsPauseOverlayOpen(false);
+      setTextStateSnapshot("");
     };
-  }, [activeGame]);
+  }, [activeGame, refreshTextStateSnapshot]);
 
   const handleLaunch = (gameId: string) => {
     const launchableGameId = toLaunchableGameId(gameId);
@@ -299,18 +441,37 @@ export default function App() {
     }
 
     unlockAchievement("first-launch");
+    setIsPauseOverlayOpen(false);
     setActiveGameId(launchableGameId);
   };
 
   const handleBackToLauncher = () => {
+    setIsPauseOverlayOpen(false);
     setActiveGameId(null);
     setScore(0);
     setLastGameOver(null);
+    setTextStateSnapshot("");
   };
 
   const restartGame = () => {
     gameInstanceRef.current?.restart();
+    if (!lastGameOver && !isPauseOverlayOpen) {
+      gameInstanceRef.current?.resume();
+    }
     setLastGameOver(null);
+    refreshTextStateSnapshot();
+  };
+
+  const restartFromOverlay = () => {
+    gameInstanceRef.current?.restart();
+    gameInstanceRef.current?.pause();
+    setLastGameOver(null);
+    refreshTextStateSnapshot();
+  };
+
+  const handleBackFromOverlay = () => {
+    setIsPauseOverlayOpen(false);
+    handleBackToLauncher();
   };
 
   const handlePlayerNameChange = (nextName: string) => {
@@ -331,9 +492,7 @@ export default function App() {
           <div className="game-toolbar">
             <div>
               <h2>{activeGame.name}</h2>
-              <p>
-                Player: {displayPlayerName} | Best: {profile.highScores[activeGame.id as LaunchableGameId]}
-              </p>
+              <p>Player: {displayPlayerName} | Best: {activeLaunchableGameId ? profile.highScores[activeLaunchableGameId] : 0}</p>
               <p>Score: {score}</p>
               {lastGameOver ? (
                 <p>{lastGameOver}</p>
@@ -346,6 +505,12 @@ export default function App() {
               )}
             </div>
             <div className="actions">
+              <button
+                onClick={isPauseOverlayOpen ? closePauseOverlay : openPauseOverlay}
+                type="button"
+              >
+                {isPauseOverlayOpen ? "Resume" : "Pause / Settings"}
+              </button>
               <button onClick={restartGame} type="button">
                 Restart
               </button>
@@ -354,7 +519,58 @@ export default function App() {
               </button>
             </div>
           </div>
-          <div className="game-container" ref={hostRef} />
+          <div className="game-surface">
+            <div className="game-container" ref={hostRef} />
+            {isPauseOverlayOpen ? (
+              <section aria-label="Pause and settings overlay" className="pause-overlay">
+                <h3>Paused</h3>
+                <p>Adjust shared settings here. Press `Esc` to resume.</p>
+                <div className="pause-actions">
+                  <button onClick={closePauseOverlay} type="button">
+                    Resume
+                  </button>
+                  <button onClick={stepPausedGame} type="button">
+                    Step +1 tick
+                  </button>
+                  <button onClick={restartFromOverlay} type="button">
+                    Restart
+                  </button>
+                  <button onClick={handleBackFromOverlay} type="button">
+                    Back to launcher
+                  </button>
+                </div>
+                <fieldset className="settings-grid">
+                  <legend>Shared Settings</legend>
+                  <label>
+                    <input
+                      checked={profile.settings.autoPauseOnWindowBlur}
+                      onChange={(event) =>
+                        updateSetting("autoPauseOnWindowBlur", event.target.checked)
+                      }
+                      type="checkbox"
+                    />
+                    Auto-pause when browser loses focus
+                  </label>
+                  <label>
+                    <input
+                      checked={profile.settings.showTextStatePanel}
+                      onChange={(event) =>
+                        updateSetting("showTextStatePanel", event.target.checked)
+                      }
+                      type="checkbox"
+                    />
+                    Show deterministic text-state panel
+                  </label>
+                </fieldset>
+              </section>
+            ) : null}
+          </div>
+          {profile.settings.showTextStatePanel ? (
+            <section aria-label="Deterministic text state" className="text-state-panel">
+              <h3>Deterministic Text State</h3>
+              <pre>{textStateSnapshot || "No state snapshot yet."}</pre>
+            </section>
+          ) : null}
         </section>
       ) : (
         <section aria-label="Game catalog" className="grid">

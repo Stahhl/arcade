@@ -195,6 +195,93 @@ body {
   min-height: 360px;
 }
 
+.game-surface {
+  position: relative;
+}
+
+.pause-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  background: rgba(8, 20, 39, 0.9);
+  color: #f4f8ff;
+}
+
+.pause-overlay h3,
+.pause-overlay p {
+  margin: 0;
+}
+
+.pause-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.pause-actions button,
+.settings-grid input[type="checkbox"] {
+  accent-color: #67d5b5;
+}
+
+.pause-actions button {
+  border: 0;
+  border-radius: 8px;
+  padding: 0.55rem 0.8rem;
+  background: #67d5b5;
+  color: #081427;
+  font-weight: 700;
+}
+
+.settings-grid {
+  margin: 0;
+  border: 1px solid rgba(219, 231, 245, 0.35);
+  border-radius: 10px;
+  padding: 0.7rem 0.8rem 0.85rem;
+  display: grid;
+  gap: 0.55rem;
+}
+
+.settings-grid legend {
+  padding: 0 0.35rem;
+  font-weight: 700;
+}
+
+.settings-grid label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.text-state-panel {
+  background: #ffffff;
+  border: 1px solid #dbe7f5;
+  border-radius: 12px;
+  padding: 0.85rem;
+  box-shadow: 0 8px 18px rgba(5, 41, 77, 0.08);
+}
+
+.text-state-panel h3 {
+  margin: 0 0 0.55rem;
+}
+
+.text-state-panel pre {
+  margin: 0;
+  max-height: 220px;
+  overflow: auto;
+  border-radius: 8px;
+  background: #081427;
+  color: #f4f8ff;
+  padding: 0.65rem;
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
 .snake-root,
 .tetris-root,
 .space-invaders-root {

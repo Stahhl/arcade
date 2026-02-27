@@ -123,3 +123,35 @@ Original prompt: My computer seems to have unexpetably restarted while you where
 
 ## TODO / Suggestions
 - Next roadmap target after Phase 1 completion: Phase 2 shared pause/settings overlays.
+
+## 2026-02-27 Phase 2 Shared Pause/Settings Overlays
+- Implemented a shared shell-level pause/settings overlay in `apps/web/src/App.tsx` for all launchable games:
+  - toolbar toggle button: `Pause / Settings` (or `Resume` when open)
+  - overlay controls: `Resume`, `Step +1 tick`, `Restart`, `Back to launcher`
+  - keyboard shortcut: `Esc` toggles pause overlay.
+- Added shared, persisted settings (`localStorage` via `arcade.local-profile.v1` profile payload):
+  - `autoPauseOnWindowBlur` (default `true`)
+  - `showTextStatePanel` (default `false`).
+- Added shared behavior hooks:
+  - auto-open pause overlay on `window.blur` when enabled
+  - deterministic text-state panel below the game host when enabled (auto-refresh + hook updates).
+- Added UI styling for game surface overlay + settings controls + text-state panel in `apps/web/src/styles.css`.
+- Added app-level test coverage for Phase 2 overlay features in `apps/web/src/App.test.tsx`:
+  - open/close pause overlay flow
+  - shared setting toggle + persistence
+  - auto-pause on blur.
+- Extended e2e smoke path in `tests/e2e/specs/landing.spec.ts` to cover pause overlay open/resume before deterministic advance assertion.
+
+## 2026-02-27 Phase 2 Overlay Validation
+- `pnpm --filter @arcade/web test` PASS (14 tests)
+- `pnpm lint` PASS
+- `pnpm typecheck` PASS
+- `pnpm test` PASS
+- `pnpm test:e2e` PASS (includes new pause overlay path)
+- Skill-loop wrapper validation:
+  - command: `pnpm web-game:client -- --url http://127.0.0.1:4173 --click-selector "button[aria-label='Play Snake']" --actions-file "$HOME/.codex/skills/develop-web-game/references/action_payloads.json" --iterations 2 --pause-ms 150 --screenshot-dir output/web-game-wrapper-phase2-overlays`
+  - artifacts reviewed: `output/web-game-wrapper-phase2-overlays/shot-0.png`, `shot-1.png`, `state-0.json`, `state-1.json`
+  - no console-error artifact files produced.
+
+## TODO / Suggestions
+- Next Phase 2 target: build a stronger multi-game e2e regression suite (launcher/profile + snake/tetris/space-invaders core flows).

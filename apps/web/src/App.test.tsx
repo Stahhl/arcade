@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it } from "vitest";
 import App from "./App";
 
@@ -185,5 +185,43 @@ describe("App", () => {
     expect(screen.getByText("Snake: 1")).toBeInTheDocument();
     expect(screen.getByText("First Launch")).toBeInTheDocument();
     expect(screen.getByText("First Point")).toBeInTheDocument();
+  });
+
+  it("opens pause/settings overlay and resumes gameplay view", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Snake" }));
+
+    fireEvent.click(screen.getByRole("button", { name: "Pause / Settings" }));
+    const overlay = screen.getByLabelText("Pause and settings overlay");
+    expect(within(overlay).getByRole("heading", { name: "Paused" })).toBeInTheDocument();
+
+    fireEvent.click(within(overlay).getByRole("button", { name: "Resume" }));
+    expect(screen.queryByLabelText("Pause and settings overlay")).not.toBeInTheDocument();
+  });
+
+  it("toggles text-state setting in overlay and persists it", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Snake" }));
+    fireEvent.click(screen.getByRole("button", { name: "Pause / Settings" }));
+
+    fireEvent.click(screen.getByLabelText("Show deterministic text-state panel"));
+    expect(screen.getByRole("heading", { name: "Deterministic Text State" })).toBeInTheDocument();
+    expect(screen.getByText(/\"mode\"/)).toBeInTheDocument();
+
+    const rawProfile = window.localStorage.getItem(PROFILE_STORAGE_KEY);
+    expect(rawProfile).toBeTruthy();
+    expect(JSON.parse(rawProfile ?? "{}").settings.showTextStatePanel).toBe(true);
+  });
+
+  it("auto-pauses on browser blur with shared overlay", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Snake" }));
+
+    act(() => {
+      window.dispatchEvent(new Event("blur"));
+    });
+
+    expect(screen.getByLabelText("Pause and settings overlay")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Paused" })).toBeInTheDocument();
   });
 });

@@ -14,6 +14,14 @@ test("snake can launch and advance deterministically", async ({ page }) => {
 
   await expect(page.getByRole("heading", { name: "Snake" })).toBeVisible();
   await expect(page.getByText("Mode: running | Score: 0")).toBeVisible();
+  await page.getByRole("button", { name: "Pause / Settings" }).click();
+  await expect(page.getByLabel("Pause and settings overlay")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Paused" })).toBeVisible();
+  await page
+    .getByLabel("Pause and settings overlay")
+    .getByRole("button", { name: "Resume" })
+    .click();
+  await expect(page.getByLabel("Pause and settings overlay")).toHaveCount(0);
 
   await page.evaluate(() => {
     const hooks = window as Window & { advanceTime?: (ms: number) => void };
