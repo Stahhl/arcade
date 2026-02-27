@@ -1,0 +1,20 @@
+{
+  "name": "arcade",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Web-based arcade monorepo",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.6.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev:web": "pnpm --filter @arcade/web dev",
+    "web-game:client": "pnpm --filter @arcade/e2e run web-game-client --",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "pnpm -r --if-present --filter=!@arcade/e2e test",
+    "test:e2e": "pnpm --filter @arcade/e2e test"
+  }
+}

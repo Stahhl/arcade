@@ -1,0 +1,17 @@
+{
+  "name": "@arcade/e2e",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "lint": "echo 'lint not configured yet for @arcade/e2e'",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "playwright test",
+    "web-game-client": "node ./scripts/web_game_playwright_client_wrapper.js"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2"
+  }
+}
