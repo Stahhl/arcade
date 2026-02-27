@@ -105,11 +105,30 @@ body {
   margin: 0 0 0.75rem;
 }
 
+.snake-canvas-host {
+  width: fit-content;
+  max-width: 100%;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #9fb4cb;
+  margin-bottom: 0.75rem;
+}
+
+.snake-canvas-host canvas {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
 .snake-grid {
   margin: 0;
   line-height: 1.3;
   letter-spacing: 0.05em;
   white-space: pre;
+}
+
+.snake-grid.is-hidden {
+  display: none;
 }
 
 .snake-legend {

@@ -1,4 +1,7 @@
+import type PhaserNamespace from "phaser";
 import type { GameModule, GameOptions } from "@arcade/game-sdk";
+
+type PhaserModule = typeof PhaserNamespace;
 
 type Point = {
   x: number;
@@ -18,14 +21,43 @@ type SnakeState = {
   spawnCursor: number;
 };
 
+type SnakeUi = {
+  root: HTMLDivElement;
+  hud: HTMLParagraphElement;
+  canvasHost: HTMLDivElement;
+  grid: HTMLPreElement;
+  legend: HTMLParagraphElement;
+};
+
+type SnakeRenderer = {
+  render: (state: SnakeState) => void;
+  destroy: () => void;
+  isFallback: boolean;
+};
+
 const WIDTH = 14;
 const HEIGHT = 14;
 const STEP_MS = 140;
+const CELL_SIZE = 26;
+const BOARD_PADDING = 12;
+const CANVAS_WIDTH = WIDTH * CELL_SIZE + BOARD_PADDING * 2;
+const CANVAS_HEIGHT = HEIGHT * CELL_SIZE + BOARD_PADDING * 2;
 
 const UP: Point = { x: 0, y: -1 };
 const DOWN: Point = { x: 0, y: 1 };
 const LEFT: Point = { x: -1, y: 0 };
 const RIGHT: Point = { x: 1, y: 0 };
+
+let phaserModulePromise: Promise<PhaserModule | null> | null = null;
+
+function loadPhaserModule(): Promise<PhaserModule | null> {
+  if (!phaserModulePromise) {
+    phaserModulePromise = import("phaser")
+      .then((module) => (module.default ?? module) as PhaserModule)
+      .catch(() => null);
+  }
+  return phaserModulePromise;
+}
 
 function isSamePoint(a: Point, b: Point): boolean {
   return a.x === b.x && a.y === b.y;
@@ -93,18 +125,16 @@ function renderGrid(state: SnakeState): string {
   return rows.join("\n");
 }
 
-function createSnakeRoot(container: HTMLElement): {
-  root: HTMLDivElement;
-  hud: HTMLParagraphElement;
-  grid: HTMLPreElement;
-  legend: HTMLParagraphElement;
-} {
+function createSnakeRoot(container: HTMLElement): SnakeUi {
   container.innerHTML = "";
   const root = document.createElement("div");
   root.className = "snake-root";
 
   const hud = document.createElement("p");
   hud.className = "snake-hud";
+
+  const canvasHost = document.createElement("div");
+  canvasHost.className = "snake-canvas-host";
 
   const grid = document.createElement("pre");
   grid.className = "snake-grid";
@@ -113,10 +143,10 @@ function createSnakeRoot(container: HTMLElement): {
   legend.className = "snake-legend";
   legend.textContent = "Legend: @ head, o body, * food";
 
-  root.append(hud, grid, legend);
+  root.append(hud, canvasHost, grid, legend);
   container.append(root);
 
-  return { root, hud, grid, legend };
+  return { root, hud, canvasHost, grid, legend };
 }
 
 function renderTextState(state: SnakeState): string {
@@ -137,16 +167,132 @@ function renderTextState(state: SnakeState): string {
   });
 }
 
+function canUsePhaserRenderer(): boolean {
+  if (typeof window === "undefined" || typeof document === "undefined") {
+    return false;
+  }
+
+  const userAgent = navigator?.userAgent?.toLowerCase() ?? "";
+  if (userAgent.includes("jsdom")) {
+    return false;
+  }
+
+  try {
+    const canvas = document.createElement("canvas");
+    return typeof canvas.getContext === "function";
+  } catch {
+    return false;
+  }
+}
+
+function createFallbackRenderer(ui: SnakeUi): SnakeRenderer {
+  return {
+    isFallback: true,
+    render(state) {
+      ui.grid.textContent = renderGrid(state);
+    },
+    destroy() {
+      ui.grid.textContent = "";
+    }
+  };
+}
+
+function createPhaserRenderer(ui: SnakeUi, phaser: PhaserModule): SnakeRenderer {
+  let graphics: any = null;
+  let isDestroyed = false;
+
+  const game = new phaser.Game({
+    type: phaser.CANVAS,
+    width: CANVAS_WIDTH,
+    height: CANVAS_HEIGHT,
+    backgroundColor: "#0b132b",
+    parent: ui.canvasHost,
+    banner: false,
+    scene: {
+      create() {
+        const scene = this as any;
+        graphics = scene.add.graphics();
+      }
+    }
+  });
+
+  return {
+    isFallback: false,
+    render(state) {
+      if (isDestroyed || !graphics) {
+        return;
+      }
+
+      const draw = graphics;
+      draw.clear();
+
+      draw.fillStyle(0x0b132b, 1);
+      draw.fillRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+      draw.fillStyle(0x132238, 1);
+      draw.fillRect(
+        BOARD_PADDING,
+        BOARD_PADDING,
+        WIDTH * CELL_SIZE,
+        HEIGHT * CELL_SIZE
+      );
+
+      draw.lineStyle(1, 0x20324d, 0.4);
+      for (let x = 0; x <= WIDTH; x += 1) {
+        const xPos = BOARD_PADDING + x * CELL_SIZE;
+        draw.beginPath();
+        draw.moveTo(xPos, BOARD_PADDING);
+        draw.lineTo(xPos, BOARD_PADDING + HEIGHT * CELL_SIZE);
+        draw.strokePath();
+      }
+      for (let y = 0; y <= HEIGHT; y += 1) {
+        const yPos = BOARD_PADDING + y * CELL_SIZE;
+        draw.beginPath();
+        draw.moveTo(BOARD_PADDING, yPos);
+        draw.lineTo(BOARD_PADDING + WIDTH * CELL_SIZE, yPos);
+        draw.strokePath();
+      }
+
+      draw.fillStyle(0xf1605d, 1);
+      draw.fillRoundedRect(
+        BOARD_PADDING + state.food.x * CELL_SIZE + 3,
+        BOARD_PADDING + state.food.y * CELL_SIZE + 3,
+        CELL_SIZE - 6,
+        CELL_SIZE - 6,
+        5
+      );
+
+      state.snake.forEach((segment, index) => {
+        const color = index === 0 ? 0x8ff0a4 : 0x46c96f;
+        draw.fillStyle(color, 1);
+        draw.fillRoundedRect(
+          BOARD_PADDING + segment.x * CELL_SIZE + 3,
+          BOARD_PADDING + segment.y * CELL_SIZE + 3,
+          CELL_SIZE - 6,
+          CELL_SIZE - 6,
+          4
+        );
+      });
+    },
+    destroy() {
+      isDestroyed = true;
+      game.destroy(true);
+    }
+  };
+}
+
 export const snakeGame: GameModule = {
   metadata: {
     id: "snake",
     name: "Snake",
-    version: "0.1.0",
-    description: "Playable deterministic Snake vertical slice."
+    version: "0.2.0",
+    description: "Playable deterministic Snake running on Phaser renderer."
   },
   createGame(container: HTMLElement, options: GameOptions) {
     const state = buildInitialState();
     const ui = createSnakeRoot(container);
+    let renderer: SnakeRenderer = createFallbackRenderer(ui);
+
     let rafId = 0;
     let lastFrame = performance.now();
     let destroyed = false;
@@ -173,8 +319,28 @@ export const snakeGame: GameModule = {
 
     const updateView = () => {
       ui.hud.textContent = `Mode: ${state.mode} | Score: ${state.score}`;
-      ui.grid.textContent = renderGrid(state);
+      renderer.render(state);
     };
+
+    if (canUsePhaserRenderer()) {
+      void loadPhaserModule().then((phaser) => {
+        if (!phaser || destroyed) {
+          return;
+        }
+
+        const nextRenderer = createPhaserRenderer(ui, phaser);
+        if (destroyed) {
+          nextRenderer.destroy();
+          return;
+        }
+
+        renderer.destroy();
+        renderer = nextRenderer;
+        ui.grid.classList.add("is-hidden");
+        ui.legend.textContent = "Legend: green snake, red food. Arrows/WASD to steer.";
+        updateView();
+      });
+    }
 
     const stepSimulation = () => {
       if (state.mode !== "running") {
@@ -231,6 +397,13 @@ export const snakeGame: GameModule = {
         state.stepAccumulatorMs -= STEP_MS;
         stepSimulation();
       }
+      updateView();
+    };
+
+    const restartState = () => {
+      Object.assign(state, buildInitialState());
+      updateView();
+      emitEvents();
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -245,7 +418,8 @@ export const snakeGame: GameModule = {
       } else if (event.key.toLowerCase() === "p") {
         state.mode = state.mode === "paused" ? "running" : "paused";
       } else if (event.key.toLowerCase() === "r") {
-        Object.assign(state, buildInitialState());
+        restartState();
+        return;
       }
 
       updateView();
@@ -272,6 +446,7 @@ export const snakeGame: GameModule = {
         destroyed = true;
         cancelAnimationFrame(rafId);
         window.removeEventListener("keydown", onKeyDown);
+        renderer.destroy();
         container.innerHTML = "";
       },
       pause() {
@@ -285,9 +460,7 @@ export const snakeGame: GameModule = {
         updateView();
       },
       restart() {
-        Object.assign(state, buildInitialState());
-        updateView();
-        emitEvents();
+        restartState();
       },
       render_game_to_text() {
         return renderTextState(state);

@@ -9,6 +9,7 @@
 
 ## Phase 1: Multi-Game Local Arcade
 
+- Migrate `snake` to Phaser and standardize the Phaser game pattern for all runtime game packages.
 - Add `tetris` and `space-invaders`.
 - Build launcher with filtering/sorting.
 - Local profile persistence:
