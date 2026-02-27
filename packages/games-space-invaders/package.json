@@ -11,7 +11,8 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@arcade/game-sdk": "workspace:*"
+    "@arcade/game-sdk": "workspace:*",
+    "phaser": "^3.90.0"
   },
   "devDependencies": {
     "typescript": "^5.8.2",

@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { GameInstance, GameModule } from "@arcade/game-sdk";
 import { snakeGame } from "@arcade/games-snake";
+import { spaceInvadersGame } from "@arcade/games-space-invaders";
 import { tetrisGame } from "@arcade/games-tetris";
 
-type LaunchableGameId = "snake" | "tetris";
+type LaunchableGameId = "snake" | "tetris" | "space-invaders";
 
 type GameCard = {
   id: string;
@@ -34,15 +35,16 @@ const games: GameCard[] = [
     module: tetrisGame
   },
   {
-    id: "space-invaders",
-    name: "Space Invaders",
-    status: "Planned",
-    description: "Arcade shooter with wave-based alien patterns."
+    id: spaceInvadersGame.metadata.id,
+    name: spaceInvadersGame.metadata.name,
+    status: "In Development",
+    description: "Deterministic wave movement and shooting scaffold.",
+    module: spaceInvadersGame
   }
 ];
 
 function toLaunchableGameId(gameId: string): LaunchableGameId | null {
-  if (gameId === "snake" || gameId === "tetris") {
+  if (gameId === "snake" || gameId === "tetris" || gameId === "space-invaders") {
     return gameId;
   }
 
@@ -132,6 +134,8 @@ export default function App() {
                 <p>{lastGameOver}</p>
               ) : activeGame.id === "tetris" ? (
                 <p>Use arrows/WASD to move and drop.</p>
+              ) : activeGame.id === "space-invaders" ? (
+                <p>Move with arrows/WASD and fire with Space.</p>
               ) : (
                 <p>Use arrow keys to steer.</p>
               )}

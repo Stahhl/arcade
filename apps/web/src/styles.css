@@ -97,18 +97,21 @@ body {
 }
 
 .snake-root,
-.tetris-root {
+.tetris-root,
+.space-invaders-root {
   font-family: "Consolas", "Menlo", monospace;
   color: #0b132b;
 }
 
 .snake-hud,
-.tetris-hud {
+.tetris-hud,
+.space-invaders-hud {
   margin: 0 0 0.75rem;
 }
 
 .snake-canvas-host,
-.tetris-canvas-host {
+.tetris-canvas-host,
+.space-invaders-canvas-host {
   width: fit-content;
   max-width: 100%;
   border-radius: 10px;
@@ -118,14 +121,16 @@ body {
 }
 
 .snake-canvas-host canvas,
-.tetris-canvas-host canvas {
+.tetris-canvas-host canvas,
+.space-invaders-canvas-host canvas {
   display: block;
   max-width: 100%;
   height: auto;
 }
 
 .snake-grid,
-.tetris-grid {
+.tetris-grid,
+.space-invaders-grid {
   margin: 0;
   line-height: 1.3;
   letter-spacing: 0.05em;
@@ -133,12 +138,14 @@ body {
 }
 
 .snake-grid.is-hidden,
-.tetris-grid.is-hidden {
+.tetris-grid.is-hidden,
+.space-invaders-grid.is-hidden {
   display: none;
 }
 
 .snake-legend,
-.tetris-legend {
+.tetris-legend,
+.space-invaders-legend {
   margin: 0.75rem 0 0;
   color: #20324d;
 }

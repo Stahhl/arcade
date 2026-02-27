@@ -16,8 +16,11 @@ importers:
       '@arcade/games-snake':
         specifier: workspace:*
         version: link:../../packages/games-snake
+      '@arcade/games-space-invaders':
+        specifier: workspace:*
+        version: link:../../packages/games-space-invaders
       '@arcade/games-tetris':
-        specifier: workspace:^
+        specifier: workspace:*
         version: link:../../packages/games-tetris
       react:
         specifier: ^18.3.1
@@ -93,6 +96,9 @@ importers:
       '@arcade/game-sdk':
         specifier: workspace:*
         version: link:../game-sdk
+      phaser:
+        specifier: ^3.90.0
+        version: 3.90.0
     devDependencies:
       typescript:
         specifier: ^5.8.2

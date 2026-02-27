@@ -52,3 +52,12 @@ Original prompt: My computer seems to have unexpetably restarted while you where
 - Integrated tetris into launcher as launchable (`Play Tetris`) and updated selectors to explicit per-game labels.
 - Added tetris unit coverage (`packages/games-tetris/src/index.test.ts`) and updated app/e2e tests for multi-launchable buttons.
 - Wrapper validation for tetris completed with artifacts in `output/web-game-wrapper-tetris`; screenshots and text-state confirmed expected movement and no console-error artifact files.
+- Implemented `@arcade/games-space-invaders` deterministic Phaser-backed vertical slice with jsdom fallback and preserved SDK hooks/events.
+- Integrated Space Invaders as launchable in web shell and added app-level deterministic test coverage.
+- Applied Space Invaders collision fix so bullet hits are resolved both before and after invader movement in a tick (preventing overlap-without-hit artifacts).
+- Wrapper validation for Space Invaders rerun after fix (`output/web-game-wrapper-space-invaders`): score increments and invader removal now reflected in deterministic state.
+- Validation after Space Invaders slice:
+  - `pnpm lint` PASS
+  - `pnpm typecheck` PASS
+  - `pnpm test` PASS
+  - `pnpm test:e2e` PASS

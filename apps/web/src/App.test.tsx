@@ -65,4 +65,33 @@ describe("App", () => {
     expect(state.mode).toBe("running");
     expect((state.activePiece?.anchor.y ?? 0) > initialY).toBe(true);
   });
+
+  it("launches space invaders and advances deterministic state", () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole("button", { name: "Play Space Invaders" }));
+
+    expect(screen.getByRole("heading", { name: "Space Invaders" })).toBeInTheDocument();
+
+    const hooks = window as Window & {
+      advanceTime?: (ms: number) => void;
+      render_game_to_text?: () => string;
+    };
+
+    let state = JSON.parse(hooks.render_game_to_text?.() ?? "{}") as {
+      mode?: string;
+      invaders?: Array<{ x: number; y: number }>;
+    };
+    const startX = state.invaders?.[0]?.x ?? 0;
+
+    act(() => {
+      hooks.advanceTime?.(170);
+    });
+
+    state = JSON.parse(hooks.render_game_to_text?.() ?? "{}") as {
+      mode?: string;
+      invaders?: Array<{ x: number; y: number }>;
+    };
+    expect(state.mode).toBe("running");
+    expect(state.invaders?.[0]?.x).toBe(startX + 1);
+  });
 });
