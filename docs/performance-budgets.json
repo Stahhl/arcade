@@ -1,0 +1,13 @@
+{
+  "assetBudgets": {
+    "totalDistBytesMax": 1850000,
+    "totalJsBytesMax": 1800000,
+    "totalCssBytesMax": 10000,
+    "largestAssetBytesMax": 1550000
+  },
+  "runtimeBudgets": {
+    "simulationStepMs": 500,
+    "advanceTimeSampleDurationMsMax": 120,
+    "estimatedFpsMin": 120
+  }
+}

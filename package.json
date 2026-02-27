@@ -11,6 +11,7 @@
   "scripts": {
     "dev:web": "pnpm --filter @arcade/web dev",
     "web-game:client": "pnpm --filter @arcade/e2e run web-game-client --",
+    "perf:baseline": "pnpm build && pnpm --filter @arcade/e2e run perf:baseline",
     "build": "pnpm -r --if-present build",
     "lint": "pnpm -r --if-present lint",
     "typecheck": "pnpm -r --if-present typecheck",

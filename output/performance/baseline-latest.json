@@ -1,0 +1,108 @@
+{
+  "generatedAt": "2026-02-27T19:48:51.603Z",
+  "source": {
+    "distDir": "apps/web/dist",
+    "budgetsFile": "docs/performance-budgets.json",
+    "previewUrl": "http://127.0.0.1:4173"
+  },
+  "budgets": {
+    "assetBudgets": {
+      "totalDistBytesMax": 1850000,
+      "totalJsBytesMax": 1800000,
+      "totalCssBytesMax": 10000,
+      "largestAssetBytesMax": 1550000
+    },
+    "runtimeBudgets": {
+      "simulationStepMs": 500,
+      "advanceTimeSampleDurationMsMax": 120,
+      "estimatedFpsMin": 120
+    }
+  },
+  "assetMetrics": {
+    "assets": [
+      {
+        "file": "apps/web/dist/assets/index-DRVdxb1t.css",
+        "bytes": 4401,
+        "extension": ".css"
+      },
+      {
+        "file": "apps/web/dist/assets/index-RyTvLWar.js",
+        "bytes": 169802,
+        "extension": ".js"
+      },
+      {
+        "file": "apps/web/dist/assets/phaser-C9uvLSWa.js",
+        "bytes": 1478823,
+        "extension": ".js"
+      },
+      {
+        "file": "apps/web/dist/index.html",
+        "bytes": 391,
+        "extension": ".html"
+      }
+    ],
+    "totals": {
+      "totalDistBytes": 1653417,
+      "totalJsBytes": 1648625,
+      "totalCssBytes": 4401,
+      "largestAsset": {
+        "file": "apps/web/dist/assets/phaser-C9uvLSWa.js",
+        "bytes": 1478823,
+        "extension": ".js"
+      }
+    }
+  },
+  "runtimeMetrics": {
+    "perGame": [
+      {
+        "gameId": "snake",
+        "samplesMs": [
+          0.10000000149011612,
+          0.09999999962747097,
+          0.19999999925494194,
+          0.09999999962747097,
+          0
+        ],
+        "simulationStepMs": 500,
+        "averageAdvanceTimeSampleMs": 0.1,
+        "minAdvanceTimeSampleMs": 0,
+        "maxAdvanceTimeSampleMs": 0.19999999925494194,
+        "estimatedFpsCapacity": 300000,
+        "textStateBytes": 266
+      },
+      {
+        "gameId": "tetris",
+        "samplesMs": [
+          0.2000000011175871,
+          0.09999999962747097,
+          0.09999999962747097,
+          0.09999999962747097,
+          0
+        ],
+        "simulationStepMs": 500,
+        "averageAdvanceTimeSampleMs": 0.1,
+        "minAdvanceTimeSampleMs": 0,
+        "maxAdvanceTimeSampleMs": 0.2000000011175871,
+        "estimatedFpsCapacity": 300000,
+        "textStateBytes": 287
+      },
+      {
+        "gameId": "space-invaders",
+        "samplesMs": [
+          0.09999999962747097,
+          0.09999999962747097,
+          0.09999999962747097,
+          0.09999999962747097,
+          0.09999999962747097
+        ],
+        "simulationStepMs": 500,
+        "averageAdvanceTimeSampleMs": 0.09999999962747097,
+        "minAdvanceTimeSampleMs": 0.09999999962747097,
+        "maxAdvanceTimeSampleMs": 0.09999999962747097,
+        "estimatedFpsCapacity": 300000.0011175871,
+        "textStateBytes": 485
+      }
+    ]
+  },
+  "violations": []
+}

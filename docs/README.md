@@ -11,6 +11,8 @@ This directory defines product and technical direction before implementation.
 - `product-design.md`: Core UX screens, accessibility baseline, and visual direction.
 - `game-module-contract.md`: Standard interface each game should implement.
 - `testing-strategy.md`: Automated testing approach for deterministic game QA.
+- `performance-baseline.md`: How to run and interpret baseline/budget checks.
+- `performance-budgets.json`: Asset and runtime budget thresholds for baseline checks.
 - `roadmap.md`: Phased delivery plan from local-first to online features.
 - `implementation-plan.md`: Execution-ready milestones, backlog order, and acceptance criteria.
 

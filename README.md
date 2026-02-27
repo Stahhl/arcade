@@ -44,6 +44,7 @@ pnpm dev:web
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm test:e2e`
+- `pnpm perf:baseline`
 
 ## Skill-Compatible Playwright Client
 
@@ -54,6 +55,20 @@ pnpm web-game:client -- --url http://127.0.0.1:4173 --click-selector "text=Play"
 ```
 
 The wrapper keeps the same CLI shape as the skill client and writes screenshots/state artifacts to the path passed via `--screenshot-dir` (resolved from your current shell directory).
+
+## Performance Baseline and Budgets
+
+Run a build + performance budget check + runtime baseline report:
+
+```bash
+pnpm perf:baseline
+```
+
+This command:
+- builds `apps/web`
+- checks dist asset sizes against [`docs/performance-budgets.json`](docs/performance-budgets.json)
+- runs per-game deterministic runtime baseline sampling in headless Chromium
+- writes report output to `output/performance/baseline-latest.json`
 
 ## License
 

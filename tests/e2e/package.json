@@ -7,7 +7,8 @@
     "lint": "echo 'lint not configured yet for @arcade/e2e'",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "playwright test",
-    "web-game-client": "node ./scripts/web_game_playwright_client_wrapper.js"
+    "web-game-client": "node ./scripts/web_game_playwright_client_wrapper.js",
+    "perf:baseline": "node ./scripts/performance_baseline.js"
   },
   "devDependencies": {
     "@playwright/test": "^1.52.0",

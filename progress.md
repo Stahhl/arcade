@@ -179,3 +179,40 @@ Original prompt: My computer seems to have unexpetably restarted while you where
 
 ## TODO / Suggestions
 - Next Phase 2 target after e2e-suite hardening: start performance baselines and asset budgets.
+
+## 2026-02-27 Phase 2 Performance Baselines and Asset Budgets
+- Added budget config in `docs/performance-budgets.json`:
+  - asset budgets: total dist bytes, total JS bytes, total CSS bytes, largest asset bytes
+  - runtime budgets: deterministic simulation sample step, max sample duration, min estimated FPS.
+- Added performance baseline runner in `tests/e2e/scripts/performance_baseline.js`:
+  - validates built `apps/web/dist` asset sizes against budget thresholds
+  - starts local preview server
+  - measures deterministic runtime sample throughput for `snake`, `tetris`, and `space-invaders`
+  - writes reports to `output/performance/baseline-latest.json` and timestamped history files
+  - exits non-zero on any budget violation.
+- Added scripts:
+  - root: `pnpm perf:baseline` (build + baseline runner)
+  - e2e package: `pnpm --filter @arcade/e2e run perf:baseline`.
+- Added docs updates:
+  - `docs/performance-baseline.md` with workflow/interpretation
+  - `README.md` command usage and report location
+  - `docs/README.md` document index updates.
+
+## 2026-02-27 Performance Baseline Validation
+- `pnpm perf:baseline` PASS
+  - reports generated:
+    - `output/performance/baseline-latest.json`
+    - `output/performance/baseline-<timestamp>.json`
+  - latest measured build assets:
+    - `totalDistBytes`: 1653417
+    - `totalJsBytes`: 1648625
+    - `largestAsset`: `apps/web/dist/assets/phaser-C9uvLSWa.js` (1478823 bytes)
+  - runtime sample output recorded for all 3 games; no budget violations.
+- Regression checks after baseline integration:
+  - `pnpm lint` PASS
+  - `pnpm typecheck` PASS
+  - `pnpm test` PASS
+  - `pnpm test:e2e` PASS.
+
+## TODO / Suggestions
+- Next roadmap target after completing Phase 2: Phase 3 backend introduction (`apps/api` skeleton and profile/score endpoints).
