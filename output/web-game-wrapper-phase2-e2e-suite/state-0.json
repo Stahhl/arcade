@@ -1,0 +1,1 @@
+{"coordinateSystem":{"origin":"top-left","axis":{"x":"right-positive","y":"down-positive"},"board":{"width":14,"height":14}},"mode":"game_over","score":1,"direction":{"x":1,"y":0},"snake":[{"x":13,"y":7},{"x":12,"y":7},{"x":11,"y":7},{"x":10,"y":7}],"food":{"x":0,"y":0}}

@@ -155,3 +155,27 @@ Original prompt: My computer seems to have unexpetably restarted while you where
 
 ## TODO / Suggestions
 - Next Phase 2 target: build a stronger multi-game e2e regression suite (launcher/profile + snake/tetris/space-invaders core flows).
+
+## 2026-02-27 Phase 2 Multi-Game E2E Regression Suite
+- Expanded Playwright suite in `tests/e2e/specs/landing.spec.ts` from one smoke test to four deterministic regression scenarios:
+  - launcher/profile persistence across reload (player name + Snake high score + achievement visibility)
+  - Snake launch + pause overlay + resume + deterministic advance
+  - Tetris launch + deterministic state movement assertion (`activePiece.anchor.y` advances)
+  - Space Invaders launch + deterministic state movement assertion (`invaders[0].x` advances).
+- Added test helpers inside the e2e spec for deterministic stepping and text-state reads to reduce repeated page-eval boilerplate.
+- Kept per-test console error tracking so regressions surface immediately per scenario.
+
+## 2026-02-27 Phase 2 E2E Suite Validation
+- `pnpm --filter @arcade/e2e test` PASS (4 tests)
+- `pnpm --filter @arcade/web test` PASS
+- `pnpm lint` PASS
+- `pnpm typecheck` PASS
+- `pnpm test` PASS
+- `pnpm test:e2e` PASS
+- Skill-loop wrapper validation:
+  - command: `pnpm web-game:client -- --url http://127.0.0.1:4173 --click-selector "button[aria-label='Play Snake']" --actions-file "$HOME/.codex/skills/develop-web-game/references/action_payloads.json" --iterations 2 --pause-ms 150 --screenshot-dir output/web-game-wrapper-phase2-e2e-suite`
+  - reviewed artifacts: `output/web-game-wrapper-phase2-e2e-suite/shot-0.png`, `shot-1.png`, `state-0.json`, `state-1.json`
+  - no console-error artifact files produced.
+
+## TODO / Suggestions
+- Next Phase 2 target after e2e-suite hardening: start performance baselines and asset budgets.
