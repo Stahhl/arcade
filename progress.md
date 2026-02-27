@@ -87,3 +87,39 @@ Original prompt: My computer seems to have unexpetably restarted while you where
 
 ## TODO / Suggestions
 - Next roadmap target after this step: Phase 1 local profile persistence (player name, per-game high scores, unlocked local achievements).
+
+## 2026-02-27 Phase 1 Local Profile Persistence
+- Implemented local profile persistence in `apps/web/src/App.tsx` using `localStorage` key `arcade.local-profile.v1`:
+  - player name
+  - per-game high scores (`snake`, `tetris`, `space-invaders`)
+  - unlocked achievement ids.
+- Added local profile launcher UI:
+  - editable `Player name` input
+  - high score list for all launchable games
+  - achievements list (or empty-state message when none unlocked).
+- Wired profile updates into game lifecycle:
+  - unlock `First Launch` on game launch
+  - update per-game highscores from deterministic score/game-over events
+  - unlock `First Point` when score reaches 1+
+  - unlock `Score 10` when score reaches 10+.
+- Added profile-aware UI in game host toolbar:
+  - current player name
+  - best score for active game.
+
+## 2026-02-27 Profile Persistence Validation
+- `pnpm --filter @arcade/web test` PASS (11 tests)
+- `pnpm lint` PASS
+- `pnpm typecheck` PASS
+- `pnpm test` PASS
+- `pnpm test:e2e` PASS
+- Skill-loop wrapper validation:
+  - command: `pnpm web-game:client -- --url http://127.0.0.1:4173 --click-selector "button[aria-label='Play Snake']" --actions-file "$HOME/.codex/skills/develop-web-game/references/action_payloads.json" --iterations 2 --pause-ms 150 --screenshot-dir output/web-game-wrapper-profile-persistence`
+  - reviewed artifacts in `output/web-game-wrapper-profile-persistence` (`shot-0.png`, `shot-1.png`, `state-0.json`, `state-1.json`)
+  - no console-error artifact files produced.
+- Follow-up hardening after initial validation:
+  - made localStorage write resilient with `try/catch`
+  - removed duplicate/non-null lookup for card best-score rendering
+  - reran `pnpm --filter @arcade/web test`, `pnpm typecheck`, `pnpm test`, `pnpm test:e2e` (all PASS).
+
+## TODO / Suggestions
+- Next roadmap target after Phase 1 completion: Phase 2 shared pause/settings overlays.
