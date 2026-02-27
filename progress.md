@@ -61,3 +61,29 @@ Original prompt: My computer seems to have unexpetably restarted while you where
   - `pnpm typecheck` PASS
   - `pnpm test` PASS
   - `pnpm test:e2e` PASS
+- Completed Phase 1 launcher enhancement: added launcher catalog filtering/sorting controls in `apps/web/src/App.tsx`:
+  - search input (`Search`)
+  - status filter (`All` / `In Development` / `Planned`)
+  - sort mode (`Featured` / `Name A-Z` / `Name Z-A`)
+  - empty-state message when no results match.
+- Added launcher coverage in `apps/web/src/App.test.tsx`:
+  - search filtering behavior
+  - planned-only filter empty-state behavior
+  - descending name sort order behavior.
+- Added launcher control styling in `apps/web/src/styles.css` (`.catalog-controls`, input/select styling, `.empty-catalog`) with responsive layout.
+- Validation after launcher filtering/sorting:
+  - `pnpm --filter @arcade/web test` PASS
+  - `pnpm lint` PASS
+  - `pnpm typecheck` PASS
+  - `pnpm test` PASS
+  - `pnpm test:e2e` PASS
+- Skill-loop Playwright wrapper validation after launcher step:
+  - command run: `pnpm web-game:client -- --url http://127.0.0.1:4173 --click-selector "button[aria-label='Play Snake']" --actions-file "$HOME/.codex/skills/develop-web-game/references/action_payloads.json" --iterations 2 --pause-ms 150 --screenshot-dir output/web-game-wrapper-launcher-filters`
+  - first attempt with `text=Play Snake` selector timed out; reran with `button[aria-label='Play Snake']`.
+  - reviewed artifacts in `output/web-game-wrapper-launcher-filters`:
+    - screenshots present and visually correct (`shot-0.png`, `shot-1.png`)
+    - deterministic text state present (`state-0.json`, `state-1.json`)
+    - no console-error artifact files produced.
+
+## TODO / Suggestions
+- Next roadmap target after this step: Phase 1 local profile persistence (player name, per-game high scores, unlocked local achievements).

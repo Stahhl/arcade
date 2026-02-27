@@ -17,6 +17,39 @@ describe("App", () => {
     ).toBeInTheDocument();
   });
 
+  it("filters games by search term", () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText("Search"), {
+      target: { value: "space" }
+    });
+
+    expect(screen.getByRole("heading", { name: "Space Invaders" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Snake" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Tetris" })).not.toBeInTheDocument();
+  });
+
+  it("shows empty state when status filter excludes all games", () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText("Status"), {
+      target: { value: "planned" }
+    });
+
+    expect(screen.getByText("No games match your current filters.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Play Snake" })).not.toBeInTheDocument();
+  });
+
+  it("sorts games by name descending", () => {
+    render(<App />);
+    fireEvent.change(screen.getByLabelText("Sort"), {
+      target: { value: "name-desc" }
+    });
+
+    const orderedHeadings = screen
+      .getAllByRole("heading", { level: 2 })
+      .map((heading) => heading.textContent);
+    expect(orderedHeadings).toEqual(["Tetris", "Space Invaders", "Snake"]);
+  });
+
   it("launches snake and advances deterministic state", () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: "Play Snake" }));

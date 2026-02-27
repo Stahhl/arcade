@@ -14,6 +14,9 @@ type GameCard = {
   module?: GameModule;
 };
 
+type StatusFilter = "all" | "in-development" | "planned";
+type SortMode = "featured" | "name-asc" | "name-desc";
+
 type GameWindowHooks = Window & {
   advanceTime?: (ms: number) => void;
   render_game_to_text?: () => string;
@@ -55,6 +58,9 @@ export default function App() {
   const [activeGameId, setActiveGameId] = useState<LaunchableGameId | null>(null);
   const [score, setScore] = useState(0);
   const [lastGameOver, setLastGameOver] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [sortMode, setSortMode] = useState<SortMode>("featured");
   const hostRef = useRef<HTMLDivElement | null>(null);
   const gameInstanceRef = useRef<GameInstance | null>(null);
 
@@ -62,6 +68,37 @@ export default function App() {
     () => games.find((game) => game.id === activeGameId),
     [activeGameId]
   );
+
+  const visibleGames = useMemo(() => {
+    const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+    const filteredGames = games.filter((game) => {
+      if (statusFilter === "in-development" && game.status !== "In Development") {
+        return false;
+      }
+      if (statusFilter === "planned" && game.status !== "Planned") {
+        return false;
+      }
+      if (!normalizedSearchTerm) {
+        return true;
+      }
+
+      return (
+        game.name.toLowerCase().includes(normalizedSearchTerm) ||
+        game.description.toLowerCase().includes(normalizedSearchTerm)
+      );
+    });
+
+    if (sortMode === "featured") {
+      return filteredGames;
+    }
+
+    const sortedGames = [...filteredGames];
+    sortedGames.sort((a, b) => {
+      const result = a.name.localeCompare(b.name);
+      return sortMode === "name-asc" ? result : result * -1;
+    });
+    return sortedGames;
+  }, [searchTerm, sortMode, statusFilter]);
 
   useEffect(() => {
     const host = hostRef.current;
@@ -153,23 +190,63 @@ export default function App() {
         </section>
       ) : (
         <section aria-label="Game catalog" className="grid">
-          {games.map((game) => (
-            <article className="card" key={game.id}>
-              <h2>{game.name}</h2>
-              <p>{game.description}</p>
-              <p>
-                <strong>Status:</strong> {game.status}
-              </p>
-              <button
-                aria-label={`Play ${game.name}`}
-                disabled={game.status !== "In Development"}
-                onClick={() => handleLaunch(game.id)}
-                type="button"
+          <section aria-label="Catalog controls" className="catalog-controls">
+            <label htmlFor="game-search-input">
+              Search
+              <input
+                id="game-search-input"
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Find a game..."
+                type="search"
+                value={searchTerm}
+              />
+            </label>
+            <label htmlFor="game-status-filter">
+              Status
+              <select
+                id="game-status-filter"
+                onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}
+                value={statusFilter}
               >
-                {game.status === "In Development" ? "Play" : "Coming Soon"}
-              </button>
-            </article>
-          ))}
+                <option value="all">All</option>
+                <option value="in-development">In Development</option>
+                <option value="planned">Planned</option>
+              </select>
+            </label>
+            <label htmlFor="game-sort-mode">
+              Sort
+              <select
+                id="game-sort-mode"
+                onChange={(event) => setSortMode(event.target.value as SortMode)}
+                value={sortMode}
+              >
+                <option value="featured">Featured</option>
+                <option value="name-asc">Name A-Z</option>
+                <option value="name-desc">Name Z-A</option>
+              </select>
+            </label>
+          </section>
+          {visibleGames.length > 0 ? (
+            visibleGames.map((game) => (
+              <article className="card" key={game.id}>
+                <h2>{game.name}</h2>
+                <p>{game.description}</p>
+                <p>
+                  <strong>Status:</strong> {game.status}
+                </p>
+                <button
+                  aria-label={`Play ${game.name}`}
+                  disabled={game.status !== "In Development"}
+                  onClick={() => handleLaunch(game.id)}
+                  type="button"
+                >
+                  {game.status === "In Development" ? "Play" : "Coming Soon"}
+                </button>
+              </article>
+            ))
+          ) : (
+            <p className="empty-catalog">No games match your current filters.</p>
+          )}
         </section>
       )}
     </main>
